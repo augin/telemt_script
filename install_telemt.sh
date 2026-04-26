@@ -44,7 +44,7 @@ echo "Detecting available upstream interfaces from 'ip a'..."
 
 IFACES=$(ip -o link show | awk -F': ' '{print $2}' | grep -v '^lo$' | grep -v '^sit' | grep -v '^ip6tnl')
 
-echo "Available interfaces:" 
+echo "Available interfaces:"
 i=1
 for iface in $IFACES; do
     echo "  $i) $iface"
@@ -79,42 +79,18 @@ if ! nslookup "$TLS_DOMAIN" >/dev/null 2>&1 && ! ping -c1 "$TLS_DOMAIN" >/dev/nu
     echo "Press Enter to continue anyway or Ctrl+C to abort."
     read _
 else
-    echo "Domain OK."i
+    echo "Domain OK."
+fi
 
 echo ""
 echo "Installing Telemt..."
 opkg update
+opkg install https://test.entware.net/mipssf-k3.4/4test/aa/telemt_3.4.5-1_aarch64-3.10.ipk
 opkg install openssl-util
 opkg install jq
 
-# --- Download and extract Telemt from GitHub releases ---
-echo "Downloading Telemt from GitHub releases..."
-mkdir -p /opt/usr/bin
-cd /tmp
-wget -O telemt.tar.gz https://github.com/telemt/telemt/releases/download/3.4.8/telemt-aarch64-linux-musl.tar.gz
-tar -xzf telemt.tar.gz -C /opt/usr/bin/
-rm telemt.tar.gz
-chmod +x /opt/usr/bin/telemt
-
 mkdir -p /opt/etc/telemt
 cd /opt/etc/telemt
-
-# --- Create init script ---
-echo "Creating init script..."
-mkdir -p /opt/etc/init.d
-cat > /opt/etc/init.d/S99telemt <<'INITEOF'
-#!/bin/sh
-
-ENABLED=yes
-PROCS=telemt
-ARGS="-d /opt/etc/$PROCS/config.toml"
-PREARGS=""
-DESC="Telemt MTProxy"
-PATH=/opt/sbin:/opt/bin:/opt/usr/sbin:/opt/usr/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-. /opt/etc/init.d/rc.func
-INITEOF
-chmod +x /opt/etc/init.d/S99telemt
 
 # --- Create tlsfront directory ---
 echo "Creating tlsfront directory..."
@@ -184,6 +160,7 @@ echo "Restarting Telemt using built-in init script..."
 /opt/etc/init.d/S99telemt restart
 
 # --- Generate Telegram link ---
+
 echo ""
 echo "=== Telemt installed and running ==="
 echo "Port: $PORT"
@@ -195,5 +172,5 @@ echo "Upstream interface: $UP_IFACE"
 echo "WAN interface: $WAN_IF"
 echo "tlsfront directory: /opt/etc/telemt/tlsfront"
 echo ""
-curl -H "Authorization: $AUTH_HEADER" -s http://127.0.0.1:9091/v1/users | jq -r '.data[] | "[
-").username)]", (.links.classic[]? | "classic: \(.)"), (.links.secure[]? | "secure: \(.)"), (.links.tls[]? | "tls: \(.)")'
+
+curl -H "Authorization: $AUTH_HEADER" -s http://127.0.0.1:9091/v1/users | jq -r '.data[] | "[\(.username)]", (.links.classic[]? | "classic: \(.)"), (.links.secure[]? | "secure: \(.)"), (.links.tls[]? | "tls: \(.)"), ""'
