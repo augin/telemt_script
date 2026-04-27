@@ -1,3 +1,4 @@
+Уставновка telemt и telemt-panel на entware keenetic
 ```bash
 opkg update
 opkg install curl
