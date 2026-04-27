@@ -8,9 +8,9 @@ opkg install openssl-util
 opkg install jq
 
 # останавливаем telemt если уже стоит и запущен
-if [ -x /opt/etc/init.d/S99telemt ]; then
-    /opt/etc/init.d/S99telemt stop
-fi
+#if [ -x /opt/etc/init.d/S99telemt ]; then
+#    /opt/etc/init.d/S99telemt stop
+#fi
 
 # --- Detect public IP from ISP interface ---
 echo "Detecting public IP from interface ISP..."
