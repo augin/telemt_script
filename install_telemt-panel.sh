@@ -26,8 +26,8 @@ echo "Определена архитектура: $ARCH"
 echo "Будет установлен пакет: $IPK_URL"
 echo ""
 
-if [ -x /opt/etc/init.d/S99telemt ]; then
-    /opt/etc/init.d/S99telemt stop >/dev/null 2>&1 || true
+if [ -x /opt/etc/init.d/S99telemt-panel ]; then
+    /opt/etc/init.d/S99telemt-panel stop >/dev/null 2>&1 || true
 fi
 
 DEFAULT_PORT=8080
