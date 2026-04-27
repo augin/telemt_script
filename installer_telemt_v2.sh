@@ -1,8 +1,9 @@
 #!/bin/sh
 
 set -e
+
 echo "=== Telemt installer for Entware ==="
-echo "установка зависимостей"
+echo "Установка зависимостей"
 opkg update
 opkg install openssl-util
 opkg install jq
