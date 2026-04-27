@@ -7,7 +7,7 @@ opkg update
 opkg install openssl-util
 opkg install jq
 
-# останавливаем telemt если стоит у же запущен
+# останавливаем telemt если уже стоит и запущен
 if [ -x /opt/etc/init.d/S99telemt ]; then
     /opt/etc/init.d/S99telemt stop
 fi
