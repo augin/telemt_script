@@ -6,11 +6,9 @@ IPK_URL="https://test.entware.net/mipssf-k3.4/4test/aa/telemt-panel_0.5.2-2_aarc
 PANEL_CONFIG="/opt/etc/telemt-panel/config.toml"
 TELEMT_CONFIG="/opt/etc/telemt/config.toml"
 
-if [ -x /opt/etc/init.d/S99telemt-panel ]; then
-    /opt/etc/init.d/S99telemt-panel stop >/dev/null 2>&1 || true
+if [ -x /opt/etc/init.d/S99telemt ]; then
+    /opt/etc/init.d/S99telemt stop >/dev/null 2>&1 || true
 fi
-
-
 
 DEFAULT_PORT=8080
 
