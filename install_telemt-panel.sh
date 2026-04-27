@@ -48,7 +48,7 @@ echo "[2] Установка telemt-panel"
 opkg install "$IPK_URL"
 
 echo "[3] Введите пароль который будет использоваться для входа в панель управления:"
-read -r PASS
+read PASS
 PASSWORD_HASH=$(echo "$PASS" | telemt-panel hash-password)
 echo "password_hash = $PASSWORD_HASH"
 
