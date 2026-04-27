@@ -4,7 +4,6 @@ set -e
 
 PANEL_CONFIG="/opt/etc/telemt-panel/config.toml"
 TELEMT_CONFIG="/opt/etc/telemt/config.toml"
-
 # Определяем архитектуру
 ARCH=$(uname -m)
 
