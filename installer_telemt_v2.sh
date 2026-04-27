@@ -2,6 +2,11 @@
 
 set -e
 
+echo "установка зависимостей"
+opkg update
+opkg install openssl-util
+opkg install jq
+
 echo "=== Telemt installer for Entware ==="
 
 # --- Detect public IP from ISP interface ---
@@ -84,9 +89,7 @@ fi
 
 echo ""
 echo "Installing dependencies..."
-opkg update
-opkg install openssl-util
-opkg install jq
+
 opkg install wget-ssl || opkg install wget
 
 # --- Download latest Telemt release (aarch64 + mipsel) ---
