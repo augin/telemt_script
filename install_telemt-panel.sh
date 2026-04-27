@@ -89,3 +89,4 @@ echo "[7] Перезапуск telemt-panel"
 
 echo "[8] Готово. Конфиг записан в $PANEL_CONFIG"
 echo "telemt-panel запущен и слушает порт: $LISTEN_PORT"
+echo "пользователь admin"
