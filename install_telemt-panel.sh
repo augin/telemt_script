@@ -47,7 +47,7 @@ echo ""
 echo "[2] Установка telemt-panel"
 opkg install "$IPK_URL"
 
-echo "[3] Введите пароль который будет использоваться для входа в панель управления"
+echo "[3] Введите пароль который будет использоваться для входа в панель управления(вывод скрыт):"
 PASSWORD_HASH=$(telemt-panel hash-password 2>/dev/null | grep '^\$2')
 echo "password_hash = $PASSWORD_HASH"
 
