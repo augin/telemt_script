@@ -96,22 +96,6 @@ cd /opt/etc/telemt
 echo "Creating tlsfront directory..."
 mkdir -p tlsfront
 
-# --- Copy ACME certificate from /tmp/nginx/certs ---
-echo "Copying ACME certificate for $TLS_DOMAIN from /tmp/nginx/certs..."
-
-CERT_SRC="/tmp/nginx/certs/${TLS_DOMAIN}.certs.pem"
-KEY_SRC="/tmp/nginx/certs/${TLS_DOMAIN}.key.pem"
-
-if [ -f "$CERT_SRC" ] && [ -f "$KEY_SRC" ]; then
-    cp "$CERT_SRC" tlsfront/fullchain.pem
-    cp "$KEY_SRC" tlsfront/privkey.pem
-    echo "Certificate and key copied."
-else
-    echo "WARNING: Certificate files not found:"
-    echo "  $CERT_SRC"
-    echo "  $KEY_SRC"
-fi
-
 # --- WAN interface is fixed: ISP ---
 WAN_IF="ISP"
 echo "WAN interface set to: $WAN_IF"
