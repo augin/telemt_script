@@ -2,9 +2,29 @@
 
 set -e
 
-IPK_URL="https://test.entware.net/mipssf-k3.4/4test/aa/telemt-panel_0.5.2-2_aarch64-3.10.ipk"
 PANEL_CONFIG="/opt/etc/telemt-panel/config.toml"
 TELEMT_CONFIG="/opt/etc/telemt/config.toml"
+
+# Определяем архитектуру
+ARCH=$(uname -m)
+
+case "$ARCH" in
+    aarch64)
+        IPK_URL="https://test.entware.net/mipssf-k3.4/4test/aa/telemt-panel_0.5.2-2_aarch64-3.10.ipk"
+        ;;
+    mips|mipsel)
+        IPK_URL="https://test.entware.net/mipssf-k3.4/4test/le/telemt-panel_0.5.2-2_mipsel-3.4.ipk"
+        ;;
+    *)
+        echo "Неизвестная архитектура: $ARCH"
+        echo "Укажи URL пакета вручную, отредактировав скрипт."
+        exit 1
+        ;;
+esac
+
+echo "Определена архитектура: $ARCH"
+echo "Будет установлен пакет: $IPK_URL"
+echo ""
 
 if [ -x /opt/etc/init.d/S99telemt ]; then
     /opt/etc/init.d/S99telemt stop >/dev/null 2>&1 || true
