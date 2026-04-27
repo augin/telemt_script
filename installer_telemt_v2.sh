@@ -241,5 +241,6 @@ echo "Upstream interface: $UP_IFACE"
 echo "WAN interface: $WAN_IF"
 echo "tlsfront directory: /opt/etc/telemt/tlsfront"
 echo ""
-
 curl -H "Authorization: $AUTH_HEADER" -s http://127.0.0.1:9091/v1/users | jq -r '.data[] | "[\(.username)]", (.links.classic[]? | "classic: \(.)"), (.links.secure[]? | "secure: \(.)"), (.links.tls[]? | "tls: \(.)"), ""'
+echo ""
+echo "!!!Не забудьте открыть порт $PORT в межсетевом экране!!!"
