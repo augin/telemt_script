@@ -1,13 +1,11 @@
 #!/bin/sh
 
 set -e
-
+echo "=== Telemt installer for Entware ==="
 echo "установка зависимостей"
 opkg update
 opkg install openssl-util
 opkg install jq
-
-echo "=== Telemt installer for Entware ==="
 
 # --- Detect public IP from ISP interface ---
 echo "Detecting public IP from interface ISP..."
