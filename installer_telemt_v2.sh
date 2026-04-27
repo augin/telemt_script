@@ -7,6 +7,11 @@ opkg update
 opkg install openssl-util
 opkg install jq
 
+# останавливаем telemt если стоит у же запущен
+if [ -x /opt/etc/init.d/S99telemt ]; then
+    /opt/etc/init.d/S99telemt stop
+fi
+
 # --- Detect public IP from ISP interface ---
 echo "Detecting public IP from interface ISP..."
 AUTO_IP=$(ndmc -c 'show interface ISP' | grep "address:" | awk '{print $2}' | head -n 1)
