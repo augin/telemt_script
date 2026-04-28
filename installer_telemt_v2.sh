@@ -50,7 +50,7 @@ AUTH_HEADER=$(openssl rand -hex 32)
 echo "Generated auth_header: $AUTH_HEADER"
 
 # --- Select upstream interface from ip a ---
-echo "Detecting available upstream interfaces from 'ip a'..."
+echo "Выберете интерфейс через который прокси будет выходить в мир"
 
 IFACES=$(ip -o link show | awk -F': ' '{print $2}' | grep -v '^lo$' | grep -v '^sit' | grep -v '^ip6tnl')
 
