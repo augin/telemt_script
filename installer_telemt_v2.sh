@@ -78,9 +78,11 @@ for iface in $IFACES; do
     i=$((i+1))
 done
 
-printf "Select upstream interface number (default 1): "
+COUNT=$((i-1))
+
+printf "Select upstream interface number (default $COUNT): "
 read IFNUM
-IFNUM=${IFNUM:-1}
+IFNUM=${IFNUM:-$COUNT}
 
 UP_IFACE=$(eval echo "\$iface_$IFNUM")
 echo "Selected interface: $UP_IFACE"
