@@ -4,26 +4,9 @@ set -e
 
 echo "=== Telemt installer for Entware (universal arch) ==="
 
-# --- Detect public IP via default route ---
-echo "Detecting public IP via default route..."
-
-DEF_IFACE=$(ip route show default 2>/dev/null | awk '/default/ {print $5}' | head -n 1)
-
-if [ -z "$DEF_IFACE" ]; then
-    echo "ERROR: Cannot detect default route interface!"
-    exit 1
-fi
-
-echo "Default route interface: $DEF_IFACE"
-
-AUTO_IP=$(ip -4 addr show "$DEF_IFACE" | awk '/inet / {print $2}' | cut -d/ -f1 | head -n 1)
-
-if [ -z "$AUTO_IP" ]; then
-    echo "ERROR: Cannot detect IP address on interface $DEF_IFACE!"
-    exit 1
-fi
-
-echo "Detected public IP: $AUTO_IP"
+# --- Detect public IP from ISP interface ---
+echo "Detecting public IP from interface ISP..."
+AUTO_IP=$(ndmc -c 'show interface ISP' | grep "address:" | awk '{print $2}' | head -n 1)
 
 # --- Detect TLS domain ending with netcraze.io ---
 echo "Detecting TLS domain (ending with netcraze.io)..."
@@ -99,29 +82,39 @@ else
     echo "Domain OK."
 fi
 
-# --- Detect architecture ---
-echo "Detecting CPU architecture..."
-ARCH=$(uname -m)
+# --- Detect architecture via opkg ---
+echo "Detecting CPU architecture via opkg..."
 
-case "$ARCH" in
-    aarch64)
-        TELEMT_URL="https://test.entware.net/mipssf-k3.4/4test/aa/telemt_3.4.5-1_aarch64-3.10.ipk"
+DETECTED_ARCH=$(opkg print-architecture 2>/dev/null | sort -k3 -nr | awk '$2 != "all" {print $2; exit}')
+
+case "$DETECTED_ARCH" in
+    aarch64*)
+        SUBDIR="aa"
+        TELEMT_FILE="telemt_3.4.5-1_aarch64-3.10.ipk"
         ;;
-    mips)
-        TELEMT_URL="https://test.entware.net/mipssf-k3.4/4test/be/telemt_3.4.8-1_mips-3.4.ipk"
+    arm*)
+        SUBDIR="a7"
+        TELEMT_FILE="telemt_3.4.8-1_armv7-3.2.ipk"
         ;;
-    mipsel)
-        TELEMT_URL="https://test.entware.net/mipssf-k3.4/4test/le/telemt_3.4.8-1_mipsel-3.4.ipk"
+    mipsel*)
+        SUBDIR="le"
+        TELEMT_FILE="telemt_3.4.8-1_mipsel-3.4.ipk"
+        ;;
+    mips*)
+        SUBDIR="be"
+        TELEMT_FILE="telemt_3.4.8-1_mips-3.4.ipk"
         ;;
     *)
-        echo "Unsupported architecture: $ARCH"
+        echo "Unknown architecture: $DETECTED_ARCH"
         exit 1
         ;;
 esac
 
-echo "Detected architecture: $ARCH"
-echo "Using Telemt package:"
-echo "  $TELEMT_URL"
+BASE="https://test.entware.net/mipssf-k3.4/4test/${SUBDIR}"
+TELEMT_URL="${BASE}/${TELEMT_FILE}"
+
+echo "Architecture: $DETECTED_ARCH → folder ${SUBDIR}"
+echo "Telemt package: $TELEMT_URL"
 
 echo "Installing Telemt..."
 opkg update
@@ -135,6 +128,11 @@ cd /opt/etc/telemt
 # --- Create tlsfront directory ---
 echo "Creating tlsfront directory..."
 mkdir -p tlsfront
+
+# --- WAN interface is fixed: ISP ---
+WAN_IF="ISP"
+echo "WAN interface set to: $WAN_IF"
+echo "No firewall/NAT rules required on Keenetic for local services."
 
 echo "Writing config.toml..."
 
@@ -186,8 +184,8 @@ echo "TLS domain: $TLS_DOMAIN"
 echo "User: $USERNAME"
 echo "Secret: $USER_SECRET"
 echo "Upstream interface: $UP_IFACE"
+echo "WAN interface: $WAN_IF"
 echo "tlsfront directory: /opt/etc/telemt/tlsfront"
 echo ""
 
 curl -H "Authorization: $AUTH_HEADER" -s http://127.0.0.1:9091/v1/users | jq -r '.data[] | "[\(.username)]", (.links.classic[]? | "classic: \(.)"), (.links.secure[]? | "secure: \(.)"), (.links.tls[]? | "tls: \(.)"), ""'
-
