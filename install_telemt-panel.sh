@@ -80,7 +80,7 @@ if [ ! -f data.tar.gz ]; then
 fi
 
 echo "[3] Установка файлов из data.tar.gz"
-tar -xzvf data.tar.gz -C /opt
+tar -xzvf data.tar.gz -C /
 
 echo "[4] Проверка наличия telemt-panel"
 if ! command -v telemt-panel >/dev/null 2>&1; then
