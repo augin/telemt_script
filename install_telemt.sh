@@ -4,25 +4,28 @@ set -e
 
 echo "=== Telemt installer for Entware (universal arch) ==="
 
-# --- Detect public IP via default route ---
-echo "Detecting public IP via default route..."
+# --- Detect public IP and interface via ip route get ---
+echo "Detecting public IP via ip route get..."
 
-DEF_IFACE=$(ip route show default 2>/dev/null | awk '/default/ {print $5}' | head -n 1)
+ROUTE_INFO=$(ip route get 1.1.1.1 2>/dev/null | head -n1)
 
-if [ -z "$DEF_IFACE" ]; then
-    echo "ERROR: Cannot detect default route interface!"
+if [ -z "$ROUTE_INFO" ]; then
+    echo "ERROR: Cannot determine route to 1.1.1.1!"
     exit 1
 fi
 
+DEF_IFACE=$(echo "$ROUTE_INFO" | awk '{for(i=1;i<=NF;i++) if($i=="dev") print $(i+1)}')
+if [ -z "$DEF_IFACE" ]; then
+    echo "ERROR: Cannot detect interface from ip route get!"
+    exit 1
+fi
 echo "Default route interface: $DEF_IFACE"
 
-AUTO_IP=$(ip -4 addr show "$DEF_IFACE" | awk '/inet / {print $2}' | cut -d/ -f1 | head -n 1)
-
+AUTO_IP=$(echo "$ROUTE_INFO" | awk '{for(i=1;i<=NF;i++) if($i=="src") print $(i+1)}')
 if [ -z "$AUTO_IP" ]; then
-    echo "ERROR: Cannot detect IP address on interface $DEF_IFACE!"
+    echo "ERROR: Cannot detect source IP from ip route get!"
     exit 1
 fi
-
 echo "Detected public IP: $AUTO_IP"
 
 # --- Detect TLS domain ending with netcraze.io ---
