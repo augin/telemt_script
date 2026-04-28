@@ -80,7 +80,24 @@ if [ ! -f data.tar.gz ]; then
 fi
 
 echo "[3] Установка файлов из data.tar.gz"
-tar -xzvf data.tar.gz -C /
+
+
+# Временная директория
+WORKDIR="/opt/tmp/telemt-panel-unpack"
+rm -rf "$WORKDIR"
+mkdir -p "$WORKDIR"
+
+# Распаковываем data.tar.gz во временную папку
+tar -xzvf data.tar.gz -C "$WORKDIR"
+
+# Проверяем, что там есть opt/
+if [ ! -d "$WORKDIR/opt" ]; then
+    echo "❌ В data.tar.gz нет каталога opt/"
+    exit 1
+fi
+
+# Копируем содержимое opt/ в /opt
+cp -a "$WORKDIR/opt/"* /opt/
 
 echo "[4] Проверка наличия telemt-panel"
 if ! command -v telemt-panel >/dev/null 2>&1; then
