@@ -210,11 +210,6 @@ cd /opt/etc/telemt
 echo "Creating tlsfront directory..."
 mkdir -p tlsfront
 
-# --- WAN interface is fixed: ISP ---
-WAN_IF="ISP"
-echo "WAN interface set to: $WAN_IF"
-echo "No firewall/NAT rules required on Keenetic for local services."
-
 echo "Writing config.toml..."
 
 cat > config.toml <<EOF
