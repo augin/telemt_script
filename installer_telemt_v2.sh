@@ -41,7 +41,7 @@ echo "Detected public IP: $AUTO_IP"
 # --- Detect TLS domain ending with netcraze.io ---
 echo "Detecting TLS domain (ending with netcraze.io)..."
 AUTO_DOMAIN=$(ndmc -c 'ip http ssl acme list' | grep "domain:" | awk '{print $2}' | grep "netcraze.io" | head -n 1)
-
+echo "Domain: $AUTO_DOMAIN"
 # --- Ask parameters ---
 printf "Enter port (default 1443): "
 read PORT || true
