@@ -13,7 +13,6 @@ if [ -x /opt/etc/init.d/S99telemt ]; then
     /opt/etc/init.d/S99telemt stop >/dev/null 2>&1 || true
 fi
 
-
 # --- Detect public IP via default route ---
 echo "Detecting public IP via default route..."
 
@@ -35,11 +34,9 @@ fi
 
 echo "Detected public IP: $AUTO_IP"
 
-
 # --- Detect TLS domain ending with netcraze.io ---
 echo "Detecting TLS domain (ending with netcraze.io)..."
 AUTO_DOMAIN=$(ndmc -c 'ip http ssl acme list' | grep "domain:" | awk '{print $2}' | grep "netcraze.io" | head -n 1)
-
 
 # --- Ask parameters ---
 printf "Enter port (default 1443): "
@@ -58,7 +55,6 @@ printf "Enter username (default user1): "
 read USERNAME
 USERNAME=${USERNAME:-user1}
 
-
 # --- Auto-generate secret ---
 echo "Generating HEX16 secret..."
 USER_SECRET=$(openssl rand -hex 16)
@@ -68,7 +64,6 @@ echo "Generated secret: $USER_SECRET"
 echo "Generating API auth_header..."
 AUTH_HEADER=$(openssl rand -hex 32)
 echo "Generated auth_header: $AUTH_HEADER"
-
 
 # --- Select upstream interface from ip a ---
 echo "Выберете интерфейс через который прокси будет выходить в мир"
@@ -90,7 +85,6 @@ IFNUM=${IFNUM:-1}
 UP_IFACE=$(eval echo "\$iface_$IFNUM")
 echo "Selected interface: $UP_IFACE"
 
-
 # --- Check if port is free ---
 while true; do
     echo "Checking if port $PORT is free..."
@@ -104,7 +98,6 @@ while true; do
     fi
 done
 
-
 # --- Validate domain ---
 echo "Checking domain resolution..."
 if ! nslookup "$TLS_DOMAIN" >/dev/null 2>&1 && ! ping -c1 "$TLS_DOMAIN" >/dev/null 2>&1; then
@@ -115,12 +108,10 @@ else
     echo "Domain OK."
 fi
 
-
 echo ""
 echo "Installing dependencies..."
 
 opkg install wget-ssl || opkg install wget
-
 
 # --- Download latest Telemt release (aarch64 + mipsel) ---
 echo "=== Installing Telemt (latest release) ==="
@@ -178,7 +169,6 @@ chmod +x /opt/usr/bin/telemt
 
 echo "Telemt binary installed for architecture: $ARCH"
 
-
 # --- Install init script ---
 echo "Installing init script..."
 
@@ -200,7 +190,6 @@ EOF
 chmod +x /opt/etc/init.d/S99telemt
 
 echo "Init script installed."
-
 
 # --- Prepare config directory ---
 mkdir -p /opt/etc/telemt
@@ -260,7 +249,6 @@ echo "TLS domain: $TLS_DOMAIN"
 echo "User: $USERNAME"
 echo "Secret: $USER_SECRET"
 echo "Upstream interface: $UP_IFACE"
-echo "WAN interface: $WAN_IF"
 echo "tlsfront directory: /opt/etc/telemt/tlsfront"
 echo ""
 curl -H "Authorization: $AUTH_HEADER" -s http://127.0.0.1:9091/v1/users | jq -r '.data[] | "[\(.username)]", (.links.classic[]? | "classic: \(.)"), (.links.secure[]? | "secure: \(.)"), (.links.tls[]? | "tls: \(.)"), ""'
