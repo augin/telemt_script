@@ -107,8 +107,8 @@ DETECTED_ARCH=$(opkg print-architecture 2>/dev/null | sort -k3 -nr | awk '$2 != 
 case "$DETECTED_ARCH" in
     aarch64*)
         SUBDIR="aa"
-        TELEMT_FILE="telemt_3.4.5-1_aarch64-3.10.ipk"
-        ;;
+        TELEMT_FILE="telemt_3.4.8-1_aarch64-3.10.ipk"
+        ;;  
     arm*)
         SUBDIR="a7"
         TELEMT_FILE="telemt_3.4.8-1_armv7-3.2.ipk"
