@@ -1,6 +1,7 @@
 #!/bin/sh
 
 set -e
+set -o pipefail
 
 echo "=== Telemt installer for Entware ==="
 echo "Установка зависимостей"
@@ -8,30 +9,33 @@ opkg update
 opkg install openssl-util
 opkg install jq
 
-# останавливаем telemt если уже стоит и запущен
+# --- Stop Telemt if exists ---
 if [ -x /opt/etc/init.d/S99telemt ]; then
     /opt/etc/init.d/S99telemt stop >/dev/null 2>&1 || true
 fi
 
-# --- Detect public IP via default route ---
-echo "Detecting public IP via default route..."
+# --- Detect public IP and interface via ip route get ---
+echo "Detecting public IP via ip route get..."
 
-DEF_IFACE=$(ip route show default 2>/dev/null | awk '/default/ {print $5}' | head -n 1)
+ROUTE_INFO=$(ip route get 1.1.1.1 2>/dev/null | head -n1)
 
-if [ -z "$DEF_IFACE" ]; then
-    echo "ERROR: Cannot detect default route interface!"
+if [ -z "$ROUTE_INFO" ]; then
+    echo "ERROR: Cannot determine route to 1.1.1.1!"
     exit 1
 fi
 
+DEF_IFACE=$(echo "$ROUTE_INFO" | awk '{for(i=1;i<=NF;i++) if($i=="dev") print $(i+1)}')
+if [ -z "$DEF_IFACE" ]; then
+    echo "ERROR: Cannot detect interface from ip route get!"
+    exit 1
+fi
 echo "Default route interface: $DEF_IFACE"
 
-AUTO_IP=$(ip -4 addr show "$DEF_IFACE" | awk '/inet / {print $2}' | cut -d/ -f1 | head -n 1)
-
+AUTO_IP=$(echo "$ROUTE_INFO" | awk '{for(i=1;i<=NF;i++) if($i=="src") print $(i+1)}')
 if [ -z "$AUTO_IP" ]; then
-    echo "ERROR: Cannot detect IP address on interface $DEF_IFACE!"
+    echo "ERROR: Cannot detect source IP from ip route get!"
     exit 1
 fi
-
 echo "Detected public IP: $AUTO_IP"
 
 # --- Detect TLS domain ending with netcraze.io ---
@@ -40,19 +44,19 @@ AUTO_DOMAIN=$(ndmc -c 'ip http ssl acme list' | grep "domain:" | awk '{print $2}
 
 # --- Ask parameters ---
 printf "Enter port (default 1443): "
-read PORT
+read PORT || true
 PORT=${PORT:-1443}
 
 printf "Enter public IP (default $AUTO_IP): "
-read PUBLIC_IP
+read PUBLIC_IP || true
 PUBLIC_IP=${PUBLIC_IP:-$AUTO_IP}
 
 printf "Enter TLS domain (default $AUTO_DOMAIN): "
-read TLS_DOMAIN
+read TLS_DOMAIN || true
 TLS_DOMAIN=${TLS_DOMAIN:-$AUTO_DOMAIN}
 
 printf "Enter username (default user1): "
-read USERNAME
+read USERNAME || true
 USERNAME=${USERNAME:-user1}
 
 # --- Auto-generate secret ---
@@ -65,7 +69,7 @@ echo "Generating API auth_header..."
 AUTH_HEADER=$(openssl rand -hex 32)
 echo "Generated auth_header: $AUTH_HEADER"
 
-# --- Select upstream interface from ip a ---
+# --- Select upstream interface ---
 echo "Выберете интерфейс через который прокси будет выходить в мир"
 
 IFACES=$(ip -o link show | awk -F': ' '{print $2}' | grep -v '^lo$' | grep -v '^sit' | grep -v '^ip6tnl')
@@ -81,7 +85,7 @@ done
 COUNT=$((i-1))
 
 printf "Select upstream interface number (default $COUNT): "
-read IFNUM
+read IFNUM || true
 IFNUM=${IFNUM:-$COUNT}
 
 UP_IFACE=$(eval echo "\$iface_$IFNUM")
@@ -90,10 +94,10 @@ echo "Selected interface: $UP_IFACE"
 # --- Check if port is free ---
 while true; do
     echo "Checking if port $PORT is free..."
-    if netstat -tuln | grep ":$PORT " >/dev/null 2>&1; then
+    if netstat -tuln | grep -E "[:.]$PORT\b" >/dev/null 2>&1; then
         echo "Port $PORT is already in use!"
         printf "Enter another port: "
-        read PORT
+        read PORT || true
     else
         echo "Port OK."
         break
@@ -102,40 +106,29 @@ done
 
 # --- Validate domain ---
 echo "Checking domain resolution..."
-if ! nslookup "$TLS_DOMAIN" >/dev/null 2>&1 && ! ping -c1 "$TLS_DOMAIN" >/dev/null 2>&1; then
+if ! nslookup "$TLS_DOMAIN" 2>/dev/null | grep -q 'Address'; then
     echo "WARNING: Domain $TLS_DOMAIN does not resolve!"
     echo "Press Enter to continue anyway or Ctrl+C to abort."
-    read _
+    read _ || true
 else
     echo "Domain OK."
 fi
 
 echo ""
 echo "Installing dependencies..."
-
 opkg install wget-ssl || opkg install wget
 
-# --- Download latest Telemt release (aarch64 + mipsel) ---
+# --- Download latest Telemt release ---
 echo "=== Installing Telemt (latest release) ==="
 
 TMPDIR="/opt/tmp/telemt_dl"
 mkdir -p "$TMPDIR"
 
 ARCH=$(uname -m)
-echo "Detected architecture: $ARCH"
-
 case "$ARCH" in
-    aarch64)
-        TELEMT_FILE="telemt-aarch64-linux-musl.tar.gz"
-        ;;
-    mips|mipsel|mips32|mips32r2)
-        TELEMT_FILE="telemt-mipsel-linux-musl.tar.gz"
-        ;;
-    *)
-        echo "ERROR: Unsupported architecture: $ARCH"
-        echo "Supported: aarch64, mipsel"
-        exit 1
-        ;;
+    aarch64) TELEMT_FILE="telemt-aarch64-linux-musl.tar.gz" ;;
+    mips|mipsel|mips32|mips32r2) TELEMT_FILE="telemt-mipsel-linux-musl.tar.gz" ;;
+    *) echo "ERROR: Unsupported architecture: $ARCH"; exit 1 ;;
 esac
 
 echo "Detecting latest Telemt version from GitHub..."
@@ -157,19 +150,20 @@ echo "  $TARBALL_URL"
 wget -O "$TARBALL_PATH" "$TARBALL_URL"
 
 echo "Extracting Telemt..."
-tar -xzf "$TARBALL_PATH" -C "$TMPDIR"
+tar -xf "$TARBALL_PATH" -C "$TMPDIR"
 
-if [ ! -f "$TMPDIR/telemt" ]; then
+TELEMT_BIN=$(find "$TMPDIR" -maxdepth 2 -type f -name telemt | head -n 1)
+if [ -z "$TELEMT_BIN" ]; then
     echo "ERROR: telemt binary not found in archive!"
     exit 1
 fi
 
 echo "Installing Telemt binary to /opt/usr/bin..."
 mkdir -p /opt/usr/bin
-cp "$TMPDIR/telemt" /opt/usr/bin/telemt
+cp "$TELEMT_BIN" /opt/usr/bin/telemt
 chmod +x /opt/usr/bin/telemt
 
-echo "Telemt binary installed for architecture: $ARCH"
+echo "Telemt binary installed."
 
 # --- Install init script ---
 echo "Installing init script..."
@@ -191,14 +185,10 @@ EOF
 
 chmod +x /opt/etc/init.d/S99telemt
 
-echo "Init script installed."
-
 # --- Prepare config directory ---
 mkdir -p /opt/etc/telemt
 cd /opt/etc/telemt
 
-# --- Create tlsfront directory ---
-echo "Creating tlsfront directory..."
 mkdir -p tlsfront
 
 echo "Writing config.toml..."
