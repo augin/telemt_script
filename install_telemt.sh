@@ -153,7 +153,7 @@ echo "Writing config.toml..."
 
 cat > config.toml <<EOF
 [general]
-use_middle_proxy = true
+use_middle_proxy = false
 log_level = "silent"
 upstream_connect_failfast_hard_errors = true
 
