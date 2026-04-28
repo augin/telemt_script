@@ -4,9 +4,26 @@ set -e
 
 echo "=== Telemt installer for Entware (universal arch) ==="
 
-# --- Detect public IP from ISP interface ---
-echo "Detecting public IP from interface ISP..."
-AUTO_IP=$(ndmc -c 'show interface ISP' | grep "address:" | awk '{print $2}' | head -n 1)
+# --- Detect public IP via default route ---
+echo "Detecting public IP via default route..."
+
+DEF_IFACE=$(ip route show default 2>/dev/null | awk '/default/ {print $5}' | head -n 1)
+
+if [ -z "$DEF_IFACE" ]; then
+    echo "ERROR: Cannot detect default route interface!"
+    exit 1
+fi
+
+echo "Default route interface: $DEF_IFACE"
+
+AUTO_IP=$(ip -4 addr show "$DEF_IFACE" | awk '/inet / {print $2}' | cut -d/ -f1 | head -n 1)
+
+if [ -z "$AUTO_IP" ]; then
+    echo "ERROR: Cannot detect IP address on interface $DEF_IFACE!"
+    exit 1
+fi
+
+echo "Detected public IP: $AUTO_IP"
 
 # --- Detect TLS domain ending with netcraze.io ---
 echo "Detecting TLS domain (ending with netcraze.io)..."
