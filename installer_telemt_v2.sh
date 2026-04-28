@@ -198,6 +198,7 @@ cat > config.toml <<EOF
 use_middle_proxy = true
 log_level = "silent"
 upstream_connect_failfast_hard_errors = true
+beobachten_file = "/opt/etc/telemt/beobachten.txt"
 
 [server]
 port = $PORT
