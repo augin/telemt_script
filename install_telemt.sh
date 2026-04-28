@@ -2,7 +2,7 @@
 
 set -e
 
-echo "=== Telemt installer for Entware ==="
+echo "=== Telemt installer for Entware (universal arch) ==="
 
 # --- Detect public IP from ISP interface ---
 echo "Detecting public IP from interface ISP..."
@@ -82,10 +82,33 @@ else
     echo "Domain OK."
 fi
 
-echo ""
+# --- Detect architecture ---
+echo "Detecting CPU architecture..."
+ARCH=$(uname -m)
+
+case "$ARCH" in
+    aarch64)
+        TELEMT_URL="https://test.entware.net/mipssf-k3.4/4test/aa/telemt_3.4.5-1_aarch64-3.10.ipk"
+        ;;
+    mips)
+        TELEMT_URL="https://test.entware.net/mipssf-k3.4/4test/be/telemt_3.4.8-1_mips-3.4.ipk"
+        ;;
+    mipsel)
+        TELEMT_URL="https://test.entware.net/mipssf-k3.4/4test/le/telemt_3.4.8-1_mipsel-3.4.ipk"
+        ;;
+    *)
+        echo "Unsupported architecture: $ARCH"
+        exit 1
+        ;;
+esac
+
+echo "Detected architecture: $ARCH"
+echo "Using Telemt package:"
+echo "  $TELEMT_URL"
+
 echo "Installing Telemt..."
 opkg update
-opkg install https://test.entware.net/mipssf-k3.4/4test/aa/telemt_3.4.5-1_aarch64-3.10.ipk
+opkg install "$TELEMT_URL"
 opkg install openssl-util
 opkg install jq
 
@@ -143,8 +166,6 @@ EOF
 echo "Restarting Telemt using built-in init script..."
 /opt/etc/init.d/S99telemt restart
 
-# --- Generate Telegram link ---
-
 echo ""
 echo "=== Telemt installed and running ==="
 echo "Port: $PORT"
@@ -158,3 +179,4 @@ echo "tlsfront directory: /opt/etc/telemt/tlsfront"
 echo ""
 
 curl -H "Authorization: $AUTH_HEADER" -s http://127.0.0.1:9091/v1/users | jq -r '.data[] | "[\(.username)]", (.links.classic[]? | "classic: \(.)"), (.links.secure[]? | "secure: \(.)"), (.links.tls[]? | "tls: \(.)"), ""'
+
