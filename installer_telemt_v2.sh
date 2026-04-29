@@ -150,7 +150,7 @@ echo "  $TARBALL_URL"
 wget -O "$TARBALL_PATH" "$TARBALL_URL"
 
 echo "Extracting Telemt..."
-tar -xf "$TARBALL_PATH" -C "$TMPDIR"
+tar -xzf "$TARBALL_PATH" -C "$TMPDIR"
 
 TELEMT_BIN=$(find "$TMPDIR" -maxdepth 2 -type f -name telemt | head -n 1)
 if [ -z "$TELEMT_BIN" ]; then
