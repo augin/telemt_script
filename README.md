@@ -2,6 +2,7 @@
 ```bash
 opkg update
 opkg install curl
+opkg install libnghttp2
 ```
 ```bash
 curl -L https://raw.githubusercontent.com/augin/telemt_script/refs/heads/main/installer_telemt_v2.sh -o /opt/tmp/install_telemt.sh
