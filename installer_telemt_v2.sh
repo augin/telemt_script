@@ -59,6 +59,16 @@ printf "Enter username (default user1): "
 read USERNAME || true
 USERNAME=${USERNAME:-user1}
 
+printf "Enable read-only API mode? По умолчанию вы сможете только просматривать статистику и редактировать конфиг (y/n, default y): "
+read READONLY || true
+READONLY=${READONLY:-y}
+case "$READONLY" in
+    y|Y) READONLY_FLAG=true ;;
+    n|N) READONLY_FLAG=false ;;
+    *) echo "Invalid input, using default: read-only = true"; READONLY_FLAG=true ;;
+esac
+echo "read-only mode: $READONLY_FLAG"
+
 # --- Auto-generate secret ---
 echo "Generating HEX16 secret..."
 USER_SECRET=$(openssl rand -hex 16)
@@ -209,7 +219,7 @@ listen = "127.0.0.1:9091"
 whitelist = [ "127.0.0.1/32", "::1/128" ]
 minimal_runtime_enabled = true
 minimal_runtime_cache_ttl_ms = 1000
-read_only = true
+read_only = $READONLY_FLAG
 auth_header = "$AUTH_HEADER"
 
 [[server.listeners]]
