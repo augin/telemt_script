@@ -59,7 +59,7 @@ printf "Enter username (default user1): "
 read USERNAME || true
 USERNAME=${USERNAME:-user1}
 
-printf "Enable read-only API mode? По умолчанию вы сможете только просматривать статистику и редактировать конфиг (y/n, default y): "
+printf "Enable read-only API mode? По умолчанию в telemt-panel вы сможете только просматривать статистику и редактировать конфиг (y/n, default y): "
 read READONLY || true
 READONLY=${READONLY:-y}
 case "$READONLY" in
