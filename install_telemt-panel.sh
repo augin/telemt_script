@@ -141,8 +141,9 @@ listen = "0.0.0.0:$LISTEN_PORT"
 [telemt]
 url = "http://127.0.0.1:9091"
 auth_header = "$AUTH_HEADER"
-
+binary_path = "/opt/usr/bin/telemt"
 [panel]
+binary_path = "/opt/sbin/telemt-panel"
 
 [tls]
 
