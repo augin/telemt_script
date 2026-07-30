@@ -20,3 +20,32 @@ curl -L https://raw.githubusercontent.com/anch665/keendev/refs/heads/main/journa
 chmod +x /opt/usr/bin/journalctl
 /opt/etc/init.d/S99telemt-panel restart
 ```
+
+удаление
+```
+# Остановить службы Entware
+/opt/etc/init.d/S99telemt-panel stop 2>/dev/null || true
+/opt/etc/init.d/S99telemt stop 2>/dev/null || true
+
+# Удалить init-скрипты
+rm -f /opt/etc/init.d/S99telemt
+rm -f /opt/etc/init.d/S99telemt-panel
+
+# Удалить бинарники
+rm -f /opt/usr/bin/telemt
+rm -f /opt/sbin/telemt-panel
+
+# Удалить конфигурацию
+rm -rf /opt/etc/telemt
+rm -rf /opt/etc/telemt-panel
+
+# Очистить временные каталоги, которые создавали установщики
+rm -rf /opt/tmp/telemt_dl
+rm -rf /opt/tmp/telemt-panel-install
+
+# Удалить лог (если был создан)
+rm -f /tmp/log/telemt.log
+
+# Удалить кэш beobachten (если был создан)
+rm -f /tmp/cache/beobachten.txt
+```
